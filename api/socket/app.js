@@ -11,7 +11,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO with the HTTP server
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:400",
+    origin: "https://full-stack-estate-1-ohb3.onrender.com",
   },
 });
 
