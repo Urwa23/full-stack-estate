@@ -1,26 +1,35 @@
 import { Server } from "socket.io";
+import http from "http";
+import express from "express";
 
-const io = new Server({
+const app = express();
+const PORT = process.env.PORT || 4000;
+
+// Create an HTTP server
+const server = http.createServer(app);
+
+// Initialize Socket.IO with the HTTP server
+const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: "http://localhost:400",
   },
 });
 
-let onlineUser = [];
+let onlineUsers = [];
 
 const addUser = (userId, socketId) => {
-  const userExits = onlineUser.find((user) => user.userId === userId);
-  if (!userExits) {
-    onlineUser.push({ userId, socketId });
+  const userExists = onlineUsers.find((user) => user.userId === userId);
+  if (!userExists) {
+    onlineUsers.push({ userId, socketId });
   }
 };
 
 const removeUser = (socketId) => {
-  onlineUser = onlineUser.filter((user) => user.socketId !== socketId);
+  onlineUsers = onlineUsers.filter((user) => user.socketId !== socketId);
 };
 
 const getUser = (userId) => {
-  return onlineUser.find((user) => user.userId === userId);
+  return onlineUsers.find((user) => user.userId === userId);
 };
 
 io.on("connection", (socket) => {
@@ -30,7 +39,9 @@ io.on("connection", (socket) => {
 
   socket.on("sendMessage", ({ receiverId, data }) => {
     const receiver = getUser(receiverId);
-    io.to(receiver.socketId).emit("getMessage", data);
+    if (receiver) {
+      io.to(receiver.socketId).emit("getMessage", data);
+    }
   });
 
   socket.on("disconnect", () => {
@@ -38,4 +49,7 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen("4000");
+// Start the server
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
